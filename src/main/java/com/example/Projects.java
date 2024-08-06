@@ -42,14 +42,20 @@ public class Projects implements HttpHandler {
         Connection conn = null;
         Statement stmt = null;
         try {
-            Class.forName("org.sqlite.JDBC");
+            String dbUrl = System.getenv("DATABASE_URL");
+            if (dbUrl == null) {
+                dbUrl = "jdbc:sqlite:src/main/resources/website.db"; // Local development path
+            }
             
-            String dbPath = System.getenv("DATABASE_PATH");
-            if (dbPath == null) {
-                dbPath = "src/main/resources/website.db"; // Local development path
+            if (dbUrl.startsWith("jdbc:postgresql:")) {
+                // For PostgreSQL
+                Class.forName("org.postgresql.Driver");
+            } else {
+                // For SQLite
+                Class.forName("org.sqlite.JDBC");
             }
 
-            conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
+            conn = DriverManager.getConnection(dbUrl);
             stmt = conn.createStatement();
             String sql = "SELECT id, project_name, project_date, desc, img_url, tags FROM projects";
             ResultSet rs = stmt.executeQuery(sql);
