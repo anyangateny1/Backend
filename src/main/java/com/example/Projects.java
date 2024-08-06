@@ -57,7 +57,7 @@ public class Projects implements HttpHandler {
 
             conn = DriverManager.getConnection(dbUrl);
             stmt = conn.createStatement();
-            String sql = "SELECT id, project_name, project_date, desc, img_url, tags FROM projects";
+            String sql = "SELECT id, project_name, project_date, description, img_url, tags FROM projects";
             ResultSet rs = stmt.executeQuery(sql);
 
             JSONArray projectsArray = new JSONArray();
@@ -66,7 +66,7 @@ public class Projects implements HttpHandler {
                 project.put("id", rs.getInt("id"));
                 project.put("project_name", rs.getString("project_name"));
                 project.put("project_date", rs.getString("project_date"));
-                project.put("desc", rs.getString("desc"));
+                project.put("description", rs.getString("desciption"));
                 project.put("img_url", rs.getString("img_url"));
                 project.put("tags", rs.getString("tags"));
                 projectsArray.put(project);
