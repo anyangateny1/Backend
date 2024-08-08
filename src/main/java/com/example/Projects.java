@@ -42,8 +42,13 @@ public class Projects implements HttpHandler {
         Connection conn = null;
         Statement stmt = null;
         try {
-            String dbUrl = "jdbc:postgresql://c9mq4861d16jlm.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/d1v6cl9732arnf?user=udjfli8ii5ebtk&password=p8df26df53c42fb7d2ed8d9f539afca05f18c268558a1cfc1bb827107c8b5333f";
+            // Fetch the database URL from an environment variable
+            String dbUrl = System.getenv("JDBC_DATABASE_URL");
             
+            if (dbUrl == null || dbUrl.isEmpty()) {
+                throw new IllegalArgumentException("Database URL is not set in environment variables.");
+            }
+
             Class.forName("org.postgresql.Driver");
 
             conn = DriverManager.getConnection(dbUrl);
