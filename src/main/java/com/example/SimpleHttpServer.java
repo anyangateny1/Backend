@@ -5,7 +5,7 @@ import java.net.InetSocketAddress;
 
 public class SimpleHttpServer {
     public static void main(String[] args) throws IOException {
-        int port = 8080;
+        int port = 8000;
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
         
         server.createContext("/projects", new Projects());
