@@ -42,20 +42,28 @@ public class Projects implements HttpHandler {
         Connection conn = null;
         Statement stmt = null;
         try {
-            // Fetch the database URL from an environment variable
-            String dbUrl = "jdbc:postgresql://localhost:5432/website";
-
+            String dbUrl = System.getenv("DATABASE_URL");
+    
+            System.out.println("Database URL: " + dbUrl);
+    
             if (dbUrl == null || dbUrl.isEmpty()) {
-                throw new IllegalArgumentException("Database URL is not set in environment variables.");
+                dbUrl = "jdbc:postgresql://localhost:5432/website"; // Default local URL
+            } else {
+
+                dbUrl = dbUrl.replace("postgres://", "jdbc:postgresql://");
+
             }
-
+    
+            System.out.println("JDBC URL: " + dbUrl);
+    
             Class.forName("org.postgresql.Driver");
-
-            conn = DriverManager.getConnection(dbUrl);
+    
+            conn = DriverManager.getConnection(dbUrl, "anyangateny", "04052004"); // Empty password
+    
             stmt = conn.createStatement();
             String sql = "SELECT id, project_name, project_date, description, img_url, tags FROM projects";
             ResultSet rs = stmt.executeQuery(sql);
-
+    
             JSONArray projectsArray = new JSONArray();
             while (rs.next()) {
                 JSONObject project = new JSONObject();
@@ -70,15 +78,19 @@ public class Projects implements HttpHandler {
             rs.close();
             stmt.close();
             conn.close();
-
+    
             response = projectsArray.toString();
         } catch (Exception e) {
+            // Log the exception for debugging
             logger.severe("Error retrieving projects: " + e.getMessage());
-            response = "{\"error\":\"An error occurred\"}";
+            response = "{\"error\":\"An error occurred: " + e.getMessage() + "\"}";
         } finally {
             if (stmt != null) try { stmt.close(); } catch (Exception e) { }
             if (conn != null) try { conn.close(); } catch (Exception e) { }
         }
         return response;
     }
+    
+
+    
 }

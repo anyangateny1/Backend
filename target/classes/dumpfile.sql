@@ -21,7 +21,13 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- Name: projects; Type: TABLE; Schema: public; Owner: anyangateny
+-- Drop existing table if it exists
+--
+
+DROP TABLE IF EXISTS public.projects CASCADE;
+
+--
+-- Create table
 --
 
 CREATE TABLE public.projects (
@@ -30,14 +36,12 @@ CREATE TABLE public.projects (
     project_date text NOT NULL,
     description text,
     img_url text,
-    tags text
+    tags text,
+    PRIMARY KEY (id)
 );
 
-
-ALTER TABLE public.projects OWNER TO anyangateny;
-
 --
--- Name: projects_id_seq; Type: SEQUENCE; Schema: public; Owner: anyangateny
+-- Create sequence
 --
 
 CREATE SEQUENCE public.projects_id_seq
@@ -48,25 +52,16 @@ CREATE SEQUENCE public.projects_id_seq
     NO MAXVALUE
     CACHE 1;
 
-
-ALTER TABLE public.projects_id_seq OWNER TO anyangateny;
-
---
--- Name: projects_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: anyangateny
---
-
 ALTER SEQUENCE public.projects_id_seq OWNED BY public.projects.id;
 
-
 --
--- Name: projects id; Type: DEFAULT; Schema: public; Owner: anyangateny
+-- Set default value for the id column
 --
 
 ALTER TABLE ONLY public.projects ALTER COLUMN id SET DEFAULT nextval('public.projects_id_seq'::regclass);
 
-
 --
--- Data for Name: projects; Type: TABLE DATA; Schema: public; Owner: anyangateny
+-- Insert data
 --
 
 COPY public.projects (id, project_name, project_date, description, img_url, tags) FROM stdin;
@@ -75,23 +70,8 @@ COPY public.projects (id, project_name, project_date, description, img_url, tags
 3	LibCheck	Dec 2023	A web-app that automates book searches on a library website.	/files/image3.jpg	automation web-development web-scraping
 \.
 
-
 --
--- Name: projects_id_seq; Type: SEQUENCE SET; Schema: public; Owner: anyangateny
+-- Set sequence value
 --
 
 SELECT pg_catalog.setval('public.projects_id_seq', 3, true);
-
-
---
--- Name: projects projects_pkey; Type: CONSTRAINT; Schema: public; Owner: anyangateny
---
-
-ALTER TABLE ONLY public.projects
-    ADD CONSTRAINT projects_pkey PRIMARY KEY (id);
-
-
---
--- PostgreSQL database dump complete
---
-
