@@ -43,9 +43,7 @@ public class Projects implements HttpHandler {
         Statement stmt = null;
         try {
             String dbUrl = System.getenv("DATABASE_URL");
-    
-            System.out.println("Database URL: " + dbUrl);
-    
+        
             if (dbUrl == null || dbUrl.isEmpty()) {
                 dbUrl = "jdbc:postgresql://localhost:5432/website"; // Default local URL
             } else {
@@ -53,9 +51,7 @@ public class Projects implements HttpHandler {
                 dbUrl = dbUrl.replace("postgres://", "jdbc:postgresql://");
 
             }
-    
-            System.out.println("JDBC URL: " + dbUrl);
-    
+        
             Class.forName("org.postgresql.Driver");
     
             conn = DriverManager.getConnection(dbUrl, "anyangateny", "04052004"); // Empty password
