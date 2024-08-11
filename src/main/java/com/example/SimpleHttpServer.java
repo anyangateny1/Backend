@@ -8,7 +8,7 @@ public class SimpleHttpServer {
         int port = 8000;
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
         
-        server.createContext("/projects", new Projects());
+        server.createContext("/getProjects", new Projects());
 
         server.setExecutor(null); 
         server.start();
