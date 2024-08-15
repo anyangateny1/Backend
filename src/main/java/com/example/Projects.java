@@ -77,7 +77,6 @@ public class Projects implements HttpHandler {
     
             response = projectsArray.toString();
         } catch (Exception e) {
-            // Log the exception for debugging
             logger.severe("Error retrieving projects: " + e.getMessage());
             response = "{\"error\":\"An error occurred: " + e.getMessage() + "\"}";
         } finally {

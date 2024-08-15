@@ -10,6 +10,8 @@ public class SimpleHttpServer {
         
         server.createContext("/getProjects", new Projects());
 
+        server.createContext("/contact", new Contact());
+
         server.setExecutor(null); 
         server.start();
         System.out.println("Server started on port " + port);
