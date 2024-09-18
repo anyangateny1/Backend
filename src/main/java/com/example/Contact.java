@@ -29,7 +29,7 @@ public class Contact implements HttpHandler {
         if ("POST".equals(exchange.getRequestMethod())) {
 
             String name = "default";
-            String email = "deafult";
+            String email = "default";
             String message = "default";
 
             InputStream inputStream = exchange.getRequestBody();
