@@ -48,6 +48,8 @@ public class Contact implements HttpHandler {
             String username = System.getenv("SMTP_USER");
             String password = System.getenv("SMTP_PASSWORD");
             String to = System.getenv("EMAIL_TO");
+            String from = System.getenv("EMAIL_FROM");
+
 
             Properties properties = System.getProperties();
             properties.setProperty("mail.smtp.host", host);
@@ -66,7 +68,7 @@ public class Contact implements HttpHandler {
 
                 MimeMessage mimeMessage = new MimeMessage(session);
 
-                mimeMessage.setFrom(new InternetAddress(username));
+                mimeMessage.setFrom(new InternetAddress(from));
 
                 mimeMessage.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
 
