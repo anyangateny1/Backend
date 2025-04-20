@@ -1,0 +1,40 @@
+{
+    "FunctionName": "personal-website-backend",
+    "FunctionArn": "arn:aws:lambda:ap-southeast-2:739275456268:function:personal-website-backend",
+    "Runtime": "java11",
+    "Role": "arn:aws:iam::739275456268:role/website-lambda",
+    "Handler": "com.example.LambdaHandler::handleRequest",
+    "CodeSize": 17263495,
+    "Description": "",
+    "Timeout": 30,
+    "MemorySize": 512,
+    "LastModified": "2025-04-20T10:55:16.000+0000",
+    "CodeSha256": "WOdy8HjC8Wkd+GvpcUEnVJsxI5m70Ie49J8vq8OWlAU=",
+    "Version": "$LATEST",
+    "TracingConfig": {
+        "Mode": "PassThrough"
+    },
+    "RevisionId": "c7d12438-38a9-4cc1-bace-6b65b34271f1",
+    "State": "Active",
+    "LastUpdateStatus": "InProgress",
+    "LastUpdateStatusReason": "The function is being created.",
+    "LastUpdateStatusReasonCode": "Creating",
+    "PackageType": "Zip",
+    "Architectures": [
+        "x86_64"
+    ],
+    "EphemeralStorage": {
+        "Size": 512
+    },
+    "SnapStart": {
+        "ApplyOn": "None",
+        "OptimizationStatus": "Off"
+    },
+    "RuntimeVersionConfig": {
+        "RuntimeVersionArn": "arn:aws:lambda:ap-southeast-2::runtime:8bbfa32a50adc141a1e833de2e9137829c1a547c840197781b01bf8bcb4e9793"
+    },
+    "LoggingConfig": {
+        "LogFormat": "Text",
+        "LogGroup": "/aws/lambda/personal-website-backend"
+    }
+}

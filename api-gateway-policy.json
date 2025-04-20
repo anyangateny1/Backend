@@ -1,0 +1,28 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "apigateway:DELETE",
+                "apigateway:GET",
+                "apigateway:PATCH",
+                "apigateway:POST",
+                "apigateway:PUT"
+            ],
+            "Resource": [
+                "arn:aws:apigateway:ap-southeast-2::/restapis",
+                "arn:aws:apigateway:ap-southeast-2::/restapis/*"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "lambda:AddPermission",
+                "lambda:GetFunction",
+                "lambda:RemovePermission"
+            ],
+            "Resource": "arn:aws:lambda:ap-southeast-2:739275456268:function:personal-website-backend"
+        }
+    ]
+} 

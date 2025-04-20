@@ -1,4 +1,8 @@
+com/example/LambdaHandler.class
+com/example/ImageController.class
 com/example/Contact.class
 com/example/Projects.class
 com/example/Contact$1.class
-com/example/SimpleHttpServer.class
+com/example/S3Service.class
+com/example/AWSConfig.class
+com/example/Contact$2.class

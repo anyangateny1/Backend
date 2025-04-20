@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.JSONObject;
 
 public class Contact implements HttpHandler {
 
@@ -102,5 +103,41 @@ public class Contact implements HttpHandler {
             exchange.sendResponseHeaders(405, -1);
 
         }
+    }
+
+    public void handleContactRequest(JSONObject jsonRequest) throws MessagingException {
+        String name = jsonRequest.optString("name", "default");
+        String email = jsonRequest.optString("email", "default");
+        String message = jsonRequest.optString("message", "default");
+
+        String host = System.getenv("SMTP_HOST");
+        String port = System.getenv("SMTP_PORT");
+        String username = System.getenv("SMTP_USER");
+        String password = System.getenv("SMTP_PASSWORD");
+        String to = System.getenv("EMAIL_TO");
+        String from = System.getenv("EMAIL_FROM");
+
+        Properties properties = System.getProperties();
+        properties.setProperty("mail.smtp.host", host);
+        properties.setProperty("mail.smtp.port", port);
+        properties.setProperty("mail.smtp.auth", "true");
+        properties.setProperty("mail.smtp.starttls.enable", "true");
+
+        Session session = Session.getDefaultInstance(properties, new Authenticator() {
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(username, password);
+            }
+        });
+
+        MimeMessage mimeMessage = new MimeMessage(session);
+        mimeMessage.setFrom(new InternetAddress(from));
+        mimeMessage.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
+        mimeMessage.setSubject("atenyanyang.com");
+        mimeMessage.setText("New email.\n\n" +
+                            "Name: " + name + "\n" +
+                            "Email: " + email + "\n" +
+                            "Message: " + message);
+
+        Transport.send(mimeMessage);
     }
 }

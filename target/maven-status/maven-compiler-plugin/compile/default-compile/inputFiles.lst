@@ -1,3 +1,6 @@
-/Users/anyangateny/projects/website/backend/src/main/java/com/example/SimpleHttpServer.java
-/Users/anyangateny/projects/website/backend/src/main/java/com/example/Contact.java
-/Users/anyangateny/projects/website/backend/src/main/java/com/example/Projects.java
+/home/anyangateny/Projects/website/backend/src/main/java/com/example/AWSConfig.java
+/home/anyangateny/Projects/website/backend/src/main/java/com/example/ImageController.java
+/home/anyangateny/Projects/website/backend/src/main/java/com/example/LambdaHandler.java
+/home/anyangateny/Projects/website/backend/src/main/java/com/example/Projects.java
+/home/anyangateny/Projects/website/backend/src/main/java/com/example/S3Service.java
+/home/anyangateny/Projects/website/backend/src/main/java/com/example/Contact.java
