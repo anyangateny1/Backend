@@ -66,7 +66,7 @@ public class S3Service {
         }
     }
 
-    private String convertS3UriToKey(String s3Uri) {
+    public String convertS3UriToKey(String s3Uri) {
         logger.info("Converting URI to key: " + s3Uri);
         
         if (s3Uri == null) {
@@ -76,11 +76,39 @@ public class S3Service {
         // If it's already a relative path starting with /api/images, convert it
         if (s3Uri.startsWith("/api/images/")) {
             String imageName = s3Uri.substring("/api/images/".length());
-            // Remove any file extension if present
-            if (imageName.contains(".")) {
-                imageName = imageName.substring(0, imageName.lastIndexOf('.'));
-            }
             String key = "images/" + imageName;
+            
+            // First, try the key without any extension (as files might be stored without extensions)
+            try {
+                HeadObjectRequest headRequest = HeadObjectRequest.builder()
+                        .bucket(bucketName)
+                        .key(key)
+                        .build();
+                s3Client.headObject(headRequest);
+                logger.info("Found file without extension: " + key);
+                return key;
+            } catch (Exception e) {
+                // File doesn't exist without extension, try with extensions if no extension is present
+                if (!imageName.contains(".")) {
+                    String[] extensions = {".jpg", ".jpeg", ".png", ".gif", ".webp"};
+                    for (String ext : extensions) {
+                        String testKey = key + ext;
+                        try {
+                            HeadObjectRequest headRequest = HeadObjectRequest.builder()
+                                    .bucket(bucketName)
+                                    .key(testKey)
+                                    .build();
+                            s3Client.headObject(headRequest);
+                            logger.info("Found file with extension: " + testKey);
+                            return testKey;
+                        } catch (Exception ex) {
+                            // File doesn't exist with this extension, try next
+                            continue;
+                        }
+                    }
+                }
+            }
+            
             logger.info("Converted to key: " + key);
             return key;
         }
@@ -104,8 +132,40 @@ public class S3Service {
             return s3Uri;
         }
 
-        // Default case: assume it's a bare image name
-        return "images/" + s3Uri;
+        // Default case: assume it's a bare image name and try to find with or without extensions
+        String baseKey = "images/" + s3Uri;
+        
+        // First try without extension
+        try {
+            HeadObjectRequest headRequest = HeadObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(baseKey)
+                    .build();
+            s3Client.headObject(headRequest);
+            logger.info("Found file without extension: " + baseKey);
+            return baseKey;
+        } catch (Exception e) {
+            // Try with extensions if no extension is present
+            if (!s3Uri.contains(".")) {
+                String[] extensions = {".jpg", ".jpeg", ".png", ".gif", ".webp"};
+                for (String ext : extensions) {
+                    String testKey = baseKey + ext;
+                    try {
+                        HeadObjectRequest headRequest = HeadObjectRequest.builder()
+                                .bucket(bucketName)
+                                .key(testKey)
+                                .build();
+                        s3Client.headObject(headRequest);
+                        logger.info("Found file with extension: " + testKey);
+                        return testKey;
+                    } catch (Exception ex) {
+                        continue;
+                    }
+                }
+            }
+        }
+        
+        return baseKey;
     }
 
     public String readJsonFile(String key) {
