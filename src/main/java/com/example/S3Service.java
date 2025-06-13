@@ -73,6 +73,11 @@ public class S3Service {
             return null;
         }
 
+        // Handle URIs starting with /images/ (remove leading slash)
+        if (s3Uri.startsWith("/images/")) {
+            return s3Uri.substring(1); // Remove the leading slash
+        }
+
         // If it's already a relative path starting with /api/images, convert it
         if (s3Uri.startsWith("/api/images/")) {
             String imageName = s3Uri.substring("/api/images/".length());

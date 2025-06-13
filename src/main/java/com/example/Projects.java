@@ -4,7 +4,7 @@ import java.util.logging.Logger;
 
 public class Projects {
     private static final Logger logger = Logger.getLogger(Projects.class.getName());
-    private static final String FILE_KEY = "projects.json";
+    private static final String FILE_KEY = "files/projects.json";
     private final S3Service s3Service;
 
     public Projects(S3Service s3Service) {
