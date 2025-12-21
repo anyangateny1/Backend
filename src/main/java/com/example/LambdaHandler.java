@@ -111,6 +111,36 @@ public class LambdaHandler implements RequestHandler<APIGatewayProxyRequestEvent
                 return response;
             }
 
+            // Handle file requests (e.g., resume PDF)
+            if (path != null && path.startsWith("/api/files/") && "GET".equals(httpMethod)) {
+                String fileName = path.substring("/api/files/".length());
+                context.getLogger().log("Fetching presigned URL for file: " + fileName);
+                
+                // Check cache first
+                String cacheKey = "file_url_" + fileName;
+                String cachedUrl = getCachedValue(cacheKey);
+                if (cachedUrl != null) {
+                    JSONObject jsonResponse = new JSONObject();
+                    jsonResponse.put("url", cachedUrl);
+                    response.setStatusCode(200);
+                    response.setBody(jsonResponse.toString());
+                    return response;
+                }
+                
+                // Files are stored in the "files/" prefix in S3
+                String s3Key = "files/" + fileName;
+                String presignedUrl = s3Service.getPresignedUrl(s3Key);
+                
+                // Cache the URL
+                cacheValue(cacheKey, presignedUrl, 3300); // Cache for 55 minutes (presigned URL valid for 60)
+                
+                JSONObject jsonResponse = new JSONObject();
+                jsonResponse.put("url", presignedUrl);
+                response.setStatusCode(200);
+                response.setBody(jsonResponse.toString());
+                return response;
+            }
+
             response.setStatusCode(404);
             response.setBody("{\"error\":\"Not Found\"}");
             return response;
