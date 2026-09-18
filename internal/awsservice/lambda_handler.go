@@ -41,16 +41,17 @@ func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 
 type Project struct {
 	ID          int      `json:"id"`
-	ProjectName string   `json:"projectName"`
-	ProjectDate string   `json:"projectDate"`
-	Desc        string   `json:"desc"`
+	ProjectName string   `json:"name"`
+	ProjectDate string   `json:"date"`
+	Desc        string   `json:"description"`
 	ImgURL      string   `json:"imgUrl"`
+	GithubUrl   string   `json:"githubUrl"`
 	Tags        []string `json:"tags"`
 }
 
 func getProjects(
 	ctx context.Context,
-	req events.APIGatewayV2HTTPRequest,
+	req events.APIGatewayV2HTTPRequest, // TODO: Remove unused param (req)
 	c *S3Client,
 ) (events.APIGatewayV2HTTPResponse, error) {
 	const projectKey = "files/projects.json"
