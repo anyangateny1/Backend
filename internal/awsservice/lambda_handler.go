@@ -8,35 +8,48 @@ import (
 	"log"
 	"net/http"
 	"net/smtp"
-	"os"
+	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
+
+	smtpconfig "github.com/anyangateny1/backend/m/v2/config/smtpconfig"
+)
+
+const (
+	s3Bucket    = "anyang-personal-website"
+	projectsKey = "files/projects.json"
+	siteName    = "atenyanyang.com"
 )
 
 func HandleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	s3Client, err := newS3Client(
-		context.Background(),
-		"anyang-personal-website",
-	)
+	s3Client, err := newS3Client(ctx, s3Bucket)
 	if err != nil {
-		log.Fatal("Could not start S3 client, %w", err)
+		log.Printf("failed to start S3 client: %v", err)
+		return internalError(), nil
 	}
 
-	switch {
-	case req.RequestContext.HTTP.Method == "GET" && req.RawPath == "/projects":
-		return getProjects(ctx, req, s3Client)
+	method := req.RequestContext.HTTP.Method
 
-	case req.RequestContext.HTTP.Method == "POST" && req.RawPath == "/contact":
+	switch {
+	case method == http.MethodGet && req.RawPath == "/projects":
+		return getProjects(ctx, s3Client)
+
+	case method == http.MethodPost && req.RawPath == "/contact":
 		return postContact(ctx, req)
 
 	default:
 		return events.APIGatewayV2HTTPResponse{
-			StatusCode: 404,
+			StatusCode: http.StatusNotFound,
 			Body:       "Not found",
 		}, nil
 	}
+}
 
-	// return events.APIGatewayV2HTTPResponse{}, nil
+func internalError() events.APIGatewayV2HTTPResponse {
+	return events.APIGatewayV2HTTPResponse{
+		StatusCode: http.StatusInternalServerError,
+		Body:       "Internal server error",
+	}
 }
 
 type Project struct {
@@ -49,28 +62,17 @@ type Project struct {
 	Tags        []string `json:"tags"`
 }
 
-func getProjects(
-	ctx context.Context,
-	req events.APIGatewayV2HTTPRequest, // TODO: Remove unused param (req)
-	c *S3Client,
-) (events.APIGatewayV2HTTPResponse, error) {
-	const projectKey = "files/projects.json"
-
-	bodyBytes, err := c.readJSONFile(ctx, projectKey)
+func getProjects(ctx context.Context, c *S3Client) (events.APIGatewayV2HTTPResponse, error) {
+	bodyBytes, err := c.readJSONFile(ctx, projectsKey)
 	if err != nil {
-		return events.APIGatewayV2HTTPResponse{}, fmt.Errorf(
-			"failed to get projects: %w",
-			err,
-		)
+		log.Printf("failed to read projects file: %v", err)
+		return internalError(), nil
 	}
 
 	var projects []Project
-
 	if err := json.Unmarshal(bodyBytes, &projects); err != nil {
-		return events.APIGatewayV2HTTPResponse{}, fmt.Errorf(
-			"failed to unmarshal projects: %w",
-			err,
-		)
+		log.Printf("failed to unmarshal projects: %v", err)
+		return internalError(), nil
 	}
 
 	for i := range projects {
@@ -78,10 +80,8 @@ func getProjects(
 
 		imageURL, err := c.getPresignedURL(ctx, imageKey)
 		if err != nil {
-			return events.APIGatewayV2HTTPResponse{}, fmt.Errorf(
-				"failed to generate presigned URL: %w",
-				err,
-			)
+			log.Printf("failed to presign %q: %v", imageKey, err)
+			return internalError(), nil
 		}
 
 		projects[i].ImgURL = imageURL
@@ -89,10 +89,8 @@ func getProjects(
 
 	responseBody, err := json.Marshal(projects)
 	if err != nil {
-		return events.APIGatewayV2HTTPResponse{}, fmt.Errorf(
-			"failed to marshal projects: %w",
-			err,
-		)
+		log.Printf("failed to marshal projects: %v", err)
+		return internalError(), nil
 	}
 
 	return events.APIGatewayV2HTTPResponse{
@@ -104,78 +102,69 @@ func getProjects(
 	}, nil
 }
 
-type emailMessage struct {
+type contactRequest struct {
 	Name    string `json:"name"`
 	Email   string `json:"email"`
 	Message string `json:"subject"`
 }
 
-func postContact(
-	ctx context.Context,
-	req events.APIGatewayV2HTTPRequest,
-) (events.APIGatewayV2HTTPResponse, error) {
-	// TODO: Split this into a SMTP config
-
-	host, ok := os.LookupEnv("SMTP_HOST")
-	if !ok {
-		log.Fatal("SMTP_HOST is not set")
-	}
-
-	username, ok := os.LookupEnv("SMTP_USER")
-	if !ok {
-		log.Fatal("SMTP_USER is not set")
-	}
-
-	password, ok := os.LookupEnv("SMTP_PASSWORD")
-	if !ok {
-		log.Fatal("SMTP_PASSWORD is not set")
-	}
-	auth := smtp.PlainAuth("", username, password, host)
-
-	var emailMessage emailMessage
-	if err := json.Unmarshal([]byte(req.Body), &emailMessage); err != nil {
-		return events.APIGatewayV2HTTPResponse{}, fmt.Errorf(
-			"failed to unmarshal email: %w",
-			err,
-		)
-	}
-
-	// TODO: Add more INFO, DEBUG logging
-	en := emailMessage.Name
-	ee := emailMessage.Email
-	em := emailMessage.Message
-
-	msgStr := fmt.Sprintf(
-		"Subject: atenyanyang.com\r\n"+
-			"\r\n"+
-			"New email from atenyanyang.com\r\n"+
-			"Name: %s\r\n"+
-			"Email: %s\r\n"+
-			"Message: %s",
-		en, ee, em,
-	)
-
-	msg := []byte(msgStr)
-
-	port, ok := os.LookupEnv("SMTP_PORT")
-	if !ok {
-		log.Fatal("SMTP_PORT is not set")
-	}
-
-	to := []string{os.Getenv("EMAIL_TO")}
-
-	from, ok := os.LookupEnv("EMAIL_FROM")
-	if !ok {
-		log.Fatal("EMAIL_FROM is not set")
-	}
-
-	addr := host + ":" + port
-	err := smtp.SendMail(addr, auth, from, to, msg)
+func postContact(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	cfg, err := smtpconfig.LoadSMTPConfig()
 	if err != nil {
-		log.Fatal("Send mail failed, %w", err)
+		log.Printf("smtp config error: %v", err)
+		return internalError(), nil
+	}
+
+	var contact contactRequest
+	if err := json.Unmarshal([]byte(req.Body), &contact); err != nil {
+		log.Printf("failed to unmarshal contact request: %v", err)
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: http.StatusBadRequest,
+			Body:       "Invalid request body",
+		}, nil
+	}
+
+	if strings.TrimSpace(contact.Name) == "" || strings.TrimSpace(contact.Email) == "" {
+		return events.APIGatewayV2HTTPResponse{
+			StatusCode: http.StatusBadRequest,
+			Body:       "name and email are required",
+		}, nil
+	}
+
+	msg := buildEmailMessage(contact)
+
+	auth := smtp.PlainAuth("", cfg.Username, cfg.Password, cfg.Host)
+	addr := cfg.Host + ":" + cfg.Port
+
+	if err := smtp.SendMail(addr, auth, cfg.From, []string{cfg.To}, msg); err != nil {
+		log.Printf("failed to send mail: %v", err)
+		return internalError(), nil
 	}
 
 	return events.APIGatewayV2HTTPResponse{
 		StatusCode: http.StatusOK,
 	}, nil
+}
+
+func buildEmailMessage(c contactRequest) []byte {
+	sanitize := func(s string) string {
+		s = strings.ReplaceAll(s, "\r", "")
+		s = strings.ReplaceAll(s, "\n", "")
+		return s
+	}
+
+	name := sanitize(c.Name)
+	email := sanitize(c.Email)
+	message := sanitize(c.Message)
+
+	body := fmt.Sprintf(
+		"Subject: %s\r\n\r\n"+
+			"New email from %s\r\n"+
+			"Name: %s\r\n"+
+			"Email: %s\r\n"+
+			"Message: %s",
+		siteName, siteName, name, email, message,
+	)
+
+	return []byte(body)
 }
